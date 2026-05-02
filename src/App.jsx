@@ -1,11 +1,10 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { motion, AnimatePresence, useInView } from 'framer-motion'
+import { useForm, ValidationError } from '@formspree/react'
 
 // ─── Config (set values in .env.local — see .env.local.example) ──────────────
 const AMAZON_TAG   = import.meta.env.VITE_AMAZON_TAG   || ''
-const FORMSPREE_ID = import.meta.env.VITE_FORMSPREE_ID || ''
-const FORMSPREE    = FORMSPREE_ID ? `https://formspree.io/f/${FORMSPREE_ID}` : ''
-const FALLBACK_EMAIL = 'ahmedwasef1@gmail.com'
+const FORMSPREE_ID = import.meta.env.VITE_FORMSPREE_ID || 'mrejbwan'
 
 function amzUrl(asin) {
   if (!asin) return 'https://www.amazon.ca'
@@ -614,25 +613,8 @@ function KitchenSection() {
 
 // ─── Newsletter ────────────────────────────────────────────────────────────────
 function Newsletter() {
-  const [email, setEmail] = useState('')
-  const [sent, setSent] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [state, handleSubmit] = useForm(FORMSPREE_ID)
   const perks = ['Weekly smart tips for moms', 'Exclusive deals & affiliate picks', 'Seasonal garden & kitchen guides', 'First access to new content']
-
-  async function handleSubmit(e) {
-    e.preventDefault()
-    if (!email) return
-    setLoading(true)
-    if (FORMSPREE) {
-      // Formspree is configured — submit silently in background
-      try { await fetch(FORMSPREE, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, source: 'newsletter' }) }) } catch {}
-    } else {
-      // Fallback: open pre-filled email to site owner
-      window.open(`mailto:${FALLBACK_EMAIL}?subject=Newsletter Signup&body=Please add me to The Smart Mom newsletter: ${encodeURIComponent(email)}`, '_blank')
-    }
-    setSent(true)
-    setLoading(false)
-  }
 
   return (
     <section id="newsletter" style={{ background: `linear-gradient(135deg, ${C.primary}14, ${C.sage}0D, ${C.gold}0A)`, borderTop: `1px solid ${C.border}`, padding: 'clamp(60px, 8vw, 96px) clamp(16px, 5vw, 60px)' }}>
@@ -653,27 +635,51 @@ function Newsletter() {
               </div>
             ))}
           </div>
+
           <AnimatePresence mode="wait">
-            {sent ? (
+            {state.succeeded ? (
               <motion.div key="ok" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
                 style={{ background: C.sage + '18', border: `1px solid ${C.sage}35`, borderRadius: 16, padding: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
                 <span style={{ fontSize: 28 }}>🎉</span>
                 <div style={{ textAlign: 'left' }}>
                   <div style={{ fontFamily: font.head, fontSize: 19, fontWeight: 700, color: C.text }}>Welcome to the community!</div>
-                  <div style={{ fontFamily: font.body, fontSize: 14, color: C.muted }}>Check your inbox for your first smart tip.</div>
+                  <div style={{ fontFamily: font.body, fontSize: 14, color: C.muted }}>Check your inbox — your first smart tip is on its way.</div>
                 </div>
               </motion.div>
             ) : (
-              <motion.form key="form" onSubmit={handleSubmit} style={{ display: 'flex', gap: 10, maxWidth: 500, margin: '0 auto', flexWrap: 'wrap' }}>
-                <input type="email" placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} required
-                  style={{ flex: 1, minWidth: 190, fontFamily: font.body, fontSize: 15, color: C.text, background: C.white, border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '13px 20px', outline: 'none', boxSizing: 'border-box' }} />
-                <motion.button type="submit" disabled={loading} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-                  style={{ fontFamily: font.body, fontWeight: 700, fontSize: 14, color: C.white, background: C.primary, border: 'none', borderRadius: 50, padding: '13px 24px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                  {loading ? 'Subscribing...' : '🍁 Subscribe Free'}
-                </motion.button>
+              <motion.form key="form" onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, maxWidth: 500, margin: '0 auto' }}>
+                <div style={{ display: 'flex', gap: 10, width: '100%', flexWrap: 'wrap' }}>
+                  <input
+                    type="email"
+                    name="email"
+                    placeholder="your@email.com"
+                    required
+                    style={{ flex: 1, minWidth: 190, fontFamily: font.body, fontSize: 15, color: C.text, background: C.white, border: `1.5px solid ${state.errors?.email ? '#C45A5A' : C.border}`, borderRadius: 50, padding: '13px 20px', outline: 'none', boxSizing: 'border-box' }}
+                  />
+                  <motion.button
+                    type="submit"
+                    disabled={state.submitting}
+                    whileHover={{ scale: state.submitting ? 1 : 1.03 }}
+                    whileTap={{ scale: state.submitting ? 1 : 0.97 }}
+                    style={{ fontFamily: font.body, fontWeight: 700, fontSize: 14, color: C.white, background: state.submitting ? C.muted : C.primary, border: 'none', borderRadius: 50, padding: '13px 24px', cursor: state.submitting ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap', transition: 'background 0.2s' }}>
+                    {state.submitting ? 'Subscribing…' : '🍁 Subscribe Free'}
+                  </motion.button>
+                </div>
+
+                {/* Field-level validation error from Formspree */}
+                <ValidationError field="email" errors={state.errors}
+                  style={{ fontFamily: font.body, fontSize: 13, color: '#C45A5A', alignSelf: 'flex-start', paddingLeft: 20 }} />
+
+                {/* Form-level error (network / server) */}
+                {state.errors?.length > 0 && !state.errors.find(e => e.field === 'email') && (
+                  <p style={{ fontFamily: font.body, fontSize: 13, color: '#C45A5A' }}>
+                    Something went wrong — please try again.
+                  </p>
+                )}
               </motion.form>
             )}
           </AnimatePresence>
+
           <p style={{ fontFamily: font.body, fontSize: 12, color: C.muted, marginTop: 14, fontStyle: 'italic' }}>Free forever. Unsubscribe anytime.</p>
         </FadeIn>
       </div>
