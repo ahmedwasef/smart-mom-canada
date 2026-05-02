@@ -3,8 +3,9 @@ import { motion, AnimatePresence, useInView } from 'framer-motion'
 
 // ─── Config (set values in .env.local — see .env.local.example) ──────────────
 const AMAZON_TAG   = import.meta.env.VITE_AMAZON_TAG   || ''
-const FORMSPREE_ID = import.meta.env.VITE_FORMSPREE_ID || 'placeholder'
-const FORMSPREE    = `https://formspree.io/f/${FORMSPREE_ID}`
+const FORMSPREE_ID = import.meta.env.VITE_FORMSPREE_ID || ''
+const FORMSPREE    = FORMSPREE_ID ? `https://formspree.io/f/${FORMSPREE_ID}` : ''
+const FALLBACK_EMAIL = 'ahmedwasef1@gmail.com'
 
 function amzUrl(asin) {
   if (!asin) return 'https://www.amazon.ca'
@@ -52,17 +53,15 @@ const ARTICLES = [
   { id: 12, title: 'The $50 Kitchen Transformation from Dollarama', cat: 'organization', readTime: 4, featured: false, tag: '🏡 Organization', excerpt: 'With just $50 from Dollarama and Amazon I completely transformed my kitchen drawers and cabinets.', highlights: [], color: '#8B7A5A' },
 ]
 
-// asin: paste the 10-char code from amazon.ca/dp/XXXXXXXXXX
-// link auto-builds: amazon.ca/dp/ASIN?tag=YOUR_TAG once VITE_AMAZON_TAG is set
 const PRODUCTS = [
-  { id: 1, name: 'Instant Pot Duo 7-in-1', asin: 'ASIN_1_HERE', desc: 'The #1 kitchen tool for busy moms. Cook dinner in under 30 minutes.', price: '$89.99', old: '$149.99', store: 'Amazon Canada', cat: 'kitchen', badge: '⭐ Best Seller', rating: 4.8, reviews: '47,823', color: C.primary },
-  { id: 2, name: 'SONGMICS Closet Organizer Set', asin: 'ASIN_2_HERE', desc: 'Transform any closet in 30 minutes. No tools needed. Stackable shelves.', price: '$34.99', old: '$54.99', store: 'Amazon Canada', cat: 'organization', badge: '🏡 Mom Favorite', rating: 4.6, reviews: '12,441', color: C.sage },
-  { id: 3, name: 'Herb Garden Starter Kit', asin: 'ASIN_3_HERE', desc: 'Grow basil, cilantro & mint indoors year-round. Perfect for Canadian balconies.', price: '$24.99', old: '$39.99', store: 'Amazon Canada', cat: 'garden', badge: '🌿 Fan Favorite', rating: 4.6, reviews: '5,672', color: '#5A8A5A' },
-  { id: 4, name: 'Ninja Air Fryer Max XL', asin: 'ASIN_4_HERE', desc: 'Healthier family meals, faster. Kids absolutely love air fryer food.', price: '$109.99', old: '$159.99', store: 'Amazon Canada', cat: 'kitchen', badge: '🔥 Hot Deal', rating: 4.8, reviews: '31,204', color: '#C4955A' },
-  { id: 5, name: 'Little Tikes Kids Garden Kit', asin: 'ASIN_5_HERE', desc: 'Perfect starter garden for kids 2+. Teaches, entertains and grows together.', price: '$29.99', old: '$44.99', store: 'Amazon Canada', cat: 'garden', badge: '👶 Kids Love It', rating: 4.7, reviews: '3,218', color: '#5A8A5A' },
-  { id: 6, name: 'Expandable Drawer Organizers (4-Pack)', asin: 'ASIN_6_HERE', desc: 'Finally organize your utensil drawer. Expandable to any cabinet size.', price: '$19.99', old: '$34.99', store: 'Amazon Canada', cat: 'organization', badge: '💰 Best Value', rating: 4.5, reviews: '22,108', color: '#8B7A5A' },
-  { id: 7, name: 'Graco Pack n Play Travel Dome', asin: 'ASIN_7_HERE', desc: 'Essential for moms on the go. Folds flat, sets up in 30 seconds.', price: '$129.99', old: '$189.99', store: 'Amazon Canada', cat: 'motherhood', badge: '💎 Premium Pick', rating: 4.9, reviews: '8,932', color: C.primary },
-  { id: 8, name: 'Fisher-Price Learning Toy Bundle', asin: 'ASIN_8_HERE', desc: 'Award-winning educational toys for ages 0–3. Stimulates brain development.', price: '$44.99', old: '$69.99', store: 'Amazon Canada', cat: 'motherhood', badge: '🎖️ Award Winner', rating: 4.9, reviews: '15,441', color: '#C4785A' },
+  { id: 1, name: 'Instant Pot Duo 7-in-1 (6 Qt + Glass Lid)', asin: 'B01N2JU9MI', desc: 'The #1 kitchen tool for busy moms. Cooks dinner in under 30 minutes — pressure cooker, slow cooker, rice cooker and more.', price: '$89.99', old: '$149.99', store: 'Amazon Canada', cat: 'kitchen', badge: '⭐ Best Seller', rating: 4.8, reviews: '47,823', color: C.primary },
+  { id: 2, name: 'SONGMICS Portable Closet Organizer', asin: 'B09YQ3QZ9H', desc: 'Transform any bedroom in 30 minutes. No tools needed. 12 compartments with hanging rods and shelves.', price: '$49.99', old: '$74.99', store: 'Amazon Canada', cat: 'organization', badge: '🏡 Mom Favorite', rating: 4.6, reviews: '12,441', color: C.sage },
+  { id: 3, name: 'HOME GROWN Indoor Herb Garden Kit', asin: 'B07XL4VHJC', desc: 'Grow basil, cilantro, mint & 5 more herbs year-round indoors. Complete kit — seeds, pots, soil included.', price: '$27.99', old: '$39.99', store: 'Amazon Canada', cat: 'garden', badge: '🌿 Fan Favorite', rating: 4.6, reviews: '5,672', color: '#5A8A5A' },
+  { id: 4, name: 'Ninja AF161 Max XL Air Fryer 5.5 Qt', asin: 'B07S6529ZZ', desc: 'Healthier, crispier family meals in minutes. Kids absolutely love air fryer food — and cleanup is easy.', price: '$109.99', old: '$159.99', store: 'Amazon Canada', cat: 'kitchen', badge: '🔥 Hot Deal', rating: 4.8, reviews: '31,204', color: '#C4955A' },
+  { id: 5, name: 'ROBOTIME Kids Garden Tools Set', asin: 'B0GGGDWYCH', desc: 'Wooden garden toy set with wheelbarrow, watering can, shovel and rake. Perfect for little ones 3+.', price: '$34.99', old: '$49.99', store: 'Amazon Canada', cat: 'garden', badge: '👶 Kids Love It', rating: 4.7, reviews: '3,218', color: '#5A8A5A' },
+  { id: 6, name: '4-Pack Adjustable Drawer Dividers', asin: 'B09JZCM1D7', desc: 'Finally organize every drawer in your home. Expandable from 10.6" to 17.7" — fits any kitchen or bedroom drawer.', price: '$18.99', old: '$29.99', store: 'Amazon Canada', cat: 'organization', badge: '💰 Best Value', rating: 4.5, reviews: '22,108', color: '#8B7A5A' },
+  { id: 7, name: 'Graco Pack\'n Play Travel Dome LX', asin: 'B09VMDN9TB', desc: 'Portable playard with UV canopy, quilted changer and bassinet. Sets up in seconds, folds flat for travel.', price: '$229.99', old: '$299.99', store: 'Amazon Canada', cat: 'motherhood', badge: '💎 Premium Pick', rating: 4.9, reviews: '8,932', color: C.primary },
+  { id: 8, name: 'Fisher-Price Classic Infant Trio Set', asin: 'B07JGTNRFK', desc: 'Award-winning developmental toy set for newborns to 3 years. Rattles, teethers and activity toys in one bundle.', price: '$34.99', old: '$54.99', store: 'Amazon Canada', cat: 'motherhood', badge: '🎖️ Award Winner', rating: 4.9, reviews: '15,441', color: '#C4785A' },
 ]
 
 const TIPS = [
@@ -624,7 +623,13 @@ function Newsletter() {
     e.preventDefault()
     if (!email) return
     setLoading(true)
-    try { await fetch(FORMSPREE, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, source: 'newsletter' }) }) } catch {}
+    if (FORMSPREE) {
+      // Formspree is configured — submit silently in background
+      try { await fetch(FORMSPREE, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, source: 'newsletter' }) }) } catch {}
+    } else {
+      // Fallback: open pre-filled email to site owner
+      window.open(`mailto:${FALLBACK_EMAIL}?subject=Newsletter Signup&body=Please add me to The Smart Mom newsletter: ${encodeURIComponent(email)}`, '_blank')
+    }
     setSent(true)
     setLoading(false)
   }
