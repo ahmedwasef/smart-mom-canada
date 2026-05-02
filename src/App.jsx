@@ -118,6 +118,7 @@ function Nav({ scrolled }) {
     { label: 'Garden', href: '#garden' },
     { label: 'Kitchen', href: '#kitchen' },
     { label: 'Savings', href: '#savings' },
+    { label: 'About', href: '#about' },
   ]
 
   return (
@@ -708,6 +709,91 @@ function Footer() {
   )
 }
 
+// ─── Announcement Banner ──────────────────────────────────────────────────────
+function AnnouncementBanner() {
+  const [visible, setVisible] = useState(true)
+  const deals = [
+    '🔥 Instant Pot is 40% off on Amazon Canada this week — grab it before it sells out!',
+    '🍁 New article: How to Save $500/Month on Canadian Groceries — Read now →',
+    '🌱 Spring gardening season is here! Shop our Starter Herb Kit picks →',
+    '👶 Top 10 baby products every Canadian mom actually needs — See the list →',
+  ]
+  const [idx, setIdx] = useState(0)
+  useEffect(() => {
+    const t = setInterval(() => setIdx(n => (n + 1) % deals.length), 4000)
+    return () => clearInterval(t)
+  }, [])
+  if (!visible) return null
+  return (
+    <div style={{ background: C.primary, position: 'relative', zIndex: 200 }}>
+      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '10px clamp(16px,5vw,60px)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+        <AnimatePresence mode="wait">
+          <motion.span key={idx} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.35 }}
+            style={{ fontFamily: font.body, fontSize: 13, fontWeight: 500, color: C.white, textAlign: 'center' }}>
+            {deals[idx]}
+          </motion.span>
+        </AnimatePresence>
+        <button onClick={() => setVisible(false)} style={{ background: 'none', border: 'none', color: 'rgba(253,250,246,0.6)', cursor: 'pointer', fontSize: 16, lineHeight: 1, flexShrink: 0, padding: '0 4px' }}>✕</button>
+      </div>
+    </div>
+  )
+}
+
+// ─── About Section ────────────────────────────────────────────────────────────
+function AboutSection() {
+  const values = [
+    { icon: '🧪', title: 'Always Tested', desc: 'Every product I recommend has been personally used and evaluated — no paid promotions without disclosure.' },
+    { icon: '🍁', title: 'Canadian-First', desc: 'All tips, prices, and recommendations are tailored for life in Canada — no American-only content here.' },
+    { icon: '💰', title: 'Budget-Honest', desc: 'I share real prices, real savings numbers, and real alternatives for every budget level.' },
+    { icon: '👶', title: 'Mom-to-Mom', desc: "I am a mom myself. Everything on this site comes from lived experience, not just research." },
+  ]
+  return (
+    <section id="about" style={{ background: C.bgAlt, padding: 'clamp(60px, 8vw, 96px) clamp(16px, 5vw, 60px)' }}>
+      <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 56, alignItems: 'center' }}>
+          {/* Left: identity card */}
+          <FadeIn>
+            <div>
+              <SectionLabel>Behind The Blog</SectionLabel>
+              <h2 style={{ fontFamily: font.head, fontSize: 'clamp(28px, 4vw, 46px)', fontWeight: 700, color: C.text, lineHeight: 1.1, letterSpacing: '-1px', marginBottom: 18 }}>
+                Hi, I am a Canadian Mom<br />
+                <span style={{ color: C.primary }}>Just Like You.</span>
+              </h2>
+              <p style={{ fontFamily: font.body, fontSize: 15, color: C.muted, lineHeight: 1.72, marginBottom: 16 }}>
+                I started this blog because I was tired of American mom blogs that recommended products not available in Canada, or savings tips that did not apply to our grocery stores and prices.
+              </p>
+              <p style={{ fontFamily: font.body, fontSize: 15, color: C.muted, lineHeight: 1.72, marginBottom: 28 }}>
+                Everything here — every tip, every product, every recipe — is designed for <strong style={{ color: C.text }}>the real life of a Canadian mom</strong>. Whether you are in Toronto, Montréal, Calgary, or anywhere in between.
+              </p>
+              <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+                {[['3+', 'Years Blogging'], ['500+', 'Products Tested'], ['10K+', 'Moms Helped']].map(([n, l]) => (
+                  <div key={n}>
+                    <div style={{ fontFamily: font.head, fontSize: 28, fontWeight: 700, color: C.primary }}>{n}</div>
+                    <div style={{ fontFamily: font.body, fontSize: 12, color: C.muted }}>{l}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </FadeIn>
+
+          {/* Right: values grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+            {values.map((v, i) => (
+              <FadeIn key={v.title} delay={i * 0.1}>
+                <div style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 16, padding: '20px', height: '100%' }}>
+                  <span style={{ fontSize: 26, display: 'block', marginBottom: 10 }}>{v.icon}</span>
+                  <div style={{ fontFamily: font.head, fontSize: 15, fontWeight: 700, color: C.text, marginBottom: 6 }}>{v.title}</div>
+                  <div style={{ fontFamily: font.body, fontSize: 13, color: C.muted, lineHeight: 1.55 }}>{v.desc}</div>
+                </div>
+              </FadeIn>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 // ─── App ──────────────────────────────────────────────────────────────────────
 export default function App() {
   const [scrolled, setScrolled] = useState(false)
@@ -718,6 +804,7 @@ export default function App() {
   }, [])
   return (
     <div style={{ fontFamily: font.body, background: C.bg, color: C.text, overflowX: 'hidden' }}>
+      <AnnouncementBanner />
       <Nav scrolled={scrolled} />
       <Hero />
       <FeaturedArticles />
@@ -726,6 +813,7 @@ export default function App() {
       <SavingsHub />
       <GardenFeature />
       <KitchenSection />
+      <AboutSection />
       <Newsletter />
       <Footer />
     </div>
